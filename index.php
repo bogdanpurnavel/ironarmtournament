@@ -7,9 +7,9 @@ ob_start("ob_gzhandler");
 require_once('include/config.php');
 
 /*
-	header("Cache-Control: max-age");
-	header("Expires: " . gmdate ("D, d M Y H:i:s", $timeExp) . " GMT");
-	header('ETag: '.md5(floor(time()/30)*30));
+header("Cache-Control: max-age");
+header("Expires: " . gmdate ("D, d M Y H:i:s", $timeExp) . " GMT");
+header('ETag: '.md5(floor(time()/30)*30));
 */
 
 if(file_exists('pages/'.$identif.'.php') || file_exists('config/'.$identif.'.php')) {
