@@ -91,3 +91,6 @@ require_once("functions_input.php");
 if(isset($_COOKIE['consentcookie']) && $_COOKIE['consentcookie'] == 'y') {
 	$header['cookie_consent'] = 0;
 }
+
+//arrays
+$seed_type = array('0' => 'winner_bracket', '1' => 'looser_bracket');

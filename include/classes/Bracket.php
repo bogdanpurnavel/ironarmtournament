@@ -47,6 +47,13 @@ class Bracket {
 	private $looser_bracket_matches = 0;
 
 	/**
+     * ID in the database
+     * 
+     * @var int
+    */
+	private $id = 0;
+
+	/**
 	 * Main bracket array generated based on the number of players.
      * It gets updated by the seed saved in the databse
 	 * 
@@ -74,35 +81,47 @@ class Bracket {
 
 		$this->count_players = count($this->players);
 		$this->matches = count($this->players)/2;
+		$this->bracket['on_going_match'] = array();
+		$this->bracket['data'] = array();
 		$player_count = -1;
+
 		for($i = 1; $i <= ceil($this->matches); $i++){
-			$this->bracket['round_'.$this->round]['winner_bracket']['match_'.$i]['player_0']['id'] = $this->players[++$player_count]['id'];
-			$this->bracket['round_'.$this->round]['winner_bracket']['match_'.$i]['player_0']['name'] = $this->players[$player_count]['name'];
+			if(!isset($this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['id'])) $this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['id'] = uniqid();
 			++$player_count;
-			$this->bracket['round_'.$this->round]['winner_bracket']['match_'.$i]['player_1']['id'] = $this->players[$player_count]['id'] ?? '0';
-			$this->bracket['round_'.$this->round]['winner_bracket']['match_'.$i]['player_1']['name'] = $this->players[$player_count]['name'] ?? 'Empty';
+			$this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['player_0']['id'] = $this->players[$player_count]['id'];
+			$this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['player_0']['name'] = $this->players[$player_count]['name'];
+			++$player_count;
+			$this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['player_1']['id'] = $this->players[$player_count]['id'] ?? '0';
+			$this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['player_1']['name'] = $this->players[$player_count]['name'] ?? 'Empty';
 			if(empty($this->players[$player_count])){
-				$this->bracket['round_'.$this->round]['winner_bracket']['match_'.$i]['winner'] = 0;
+				$this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['winner'] = 0;
 				// TODO: update seed for round 2 match 1 player 0
-			}else $this->bracket['round_'.$this->round]['winner_bracket']['match_'.$i]['winner'] = null;
+			}else $this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['winner'] = null;
+
+			if(empty($this->bracket['on_going_match'])) {
+				$this->bracket['on_going_match']['id'] = $this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['id'];
+				$this->bracket['on_going_match']['data'] = $this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i];
+			}
 		}
 
 		$this->winner_bracket_matches = $this->looser_bracket_matches = ceil($this->matches/2);
 		while($this->count_players > 2){
 			$this->round++;
 			for($i = 1; $i <= $this->winner_bracket_matches; $i++){
-				$this->bracket['round_'.$this->round]['winner_bracket']['match_'.$i]['player_0']['id'] = '0';
-				$this->bracket['round_'.$this->round]['winner_bracket']['match_'.$i]['player_0']['name'] = 'BYE';
-				$this->bracket['round_'.$this->round]['winner_bracket']['match_'.$i]['player_1']['id'] = '0';
-				$this->bracket['round_'.$this->round]['winner_bracket']['match_'.$i]['player_1']['name'] = 'BYE';
-				$this->bracket['round_'.$this->round]['winner_bracket']['match_'.$i]['winner'] = null;
+				$this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['player_0']['id'] = '0';
+				$this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['player_0']['name'] = 'BYE';
+				$this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['player_1']['id'] = '0';
+				$this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['player_1']['name'] = 'BYE';
+				$this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['winner'] = null;
+				if(!isset($this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['id'])) $this->bracket['data']['round_'.$this->round]['winner_bracket']['match_'.$i]['id'] = uniqid();
 			}
 			for($i = 1; $i <= $this->looser_bracket_matches; $i++){
-				$this->bracket['round_'.$this->round]['looser_bracket']['match_'.$i]['player_0']['id'] = '0';
-				$this->bracket['round_'.$this->round]['looser_bracket']['match_'.$i]['player_0']['name'] = 'BYE';
-				$this->bracket['round_'.$this->round]['looser_bracket']['match_'.$i]['player_1']['id'] = '0';
-				$this->bracket['round_'.$this->round]['looser_bracket']['match_'.$i]['player_1']['name'] = 'BYE';
-				$this->bracket['round_'.$this->round]['looser_bracket']['match_'.$i]['winner'] = null;
+				$this->bracket['data']['round_'.$this->round]['looser_bracket']['match_'.$i]['player_0']['id'] = '0';
+				$this->bracket['data']['round_'.$this->round]['looser_bracket']['match_'.$i]['player_0']['name'] = 'BYE';
+				$this->bracket['data']['round_'.$this->round]['looser_bracket']['match_'.$i]['player_1']['id'] = '0';
+				$this->bracket['data']['round_'.$this->round]['looser_bracket']['match_'.$i]['player_1']['name'] = 'BYE';
+				$this->bracket['data']['round_'.$this->round]['looser_bracket']['match_'.$i]['winner'] = null;
+				if(!isset($this->bracket['data']['round_'.$this->round]['looser_bracket']['match_'.$i]['id'])) $this->bracket['data']['round_'.$this->round]['looser_bracket']['match_'.$i]['id'] = uniqid();
 			}
 			if($this->winner_bracket_matches > 1){
 				$this->looser_bracket_matches = ceil($this->looser_bracket_matches/2) + ($this->winner_bracket_matches - floor($this->winner_bracket_matches/2));
@@ -115,27 +134,31 @@ class Bracket {
 					$this->count_players -= ceil($this->looser_bracket_matches/2);
 				}else{
 					$this->round++;
-					$this->bracket['round_'.$this->round]['semi_final']['match_1']['player_0']['id'] = '0';
-					$this->bracket['round_'.$this->round]['semi_final']['match_1']['player_0']['name'] = 'BYE';
-					$this->bracket['round_'.$this->round]['semi_final']['match_1']['player_1']['id'] = '0';
-					$this->bracket['round_'.$this->round]['semi_final']['match_1']['player_1']['name'] = 'BYE';
-					$this->bracket['round_'.$this->round]['semi_final']['match_1']['winner'] = null;
+					$this->bracket['data']['round_'.$this->round]['semi_final']['match_1']['player_0']['id'] = '0';
+					$this->bracket['data']['round_'.$this->round]['semi_final']['match_1']['player_0']['name'] = 'BYE';
+					$this->bracket['data']['round_'.$this->round]['semi_final']['match_1']['player_1']['id'] = '0';
+					$this->bracket['data']['round_'.$this->round]['semi_final']['match_1']['player_1']['name'] = 'BYE';
+					$this->bracket['data']['round_'.$this->round]['semi_final']['match_1']['winner'] = null;
+					if(!isset($this->bracket['data']['round_'.$this->round]['semi_final']['match_1']['id'])) $this->bracket['data']['round_'.$this->round]['semi_final']['match_1']['id'] = uniqid();
 					$this->round++;
-					$this->bracket['round_'.$this->round]['final_1']['match_1']['player_0']['id'] = '0';
-					$this->bracket['round_'.$this->round]['final_1']['match_1']['player_0']['name'] = 'BYE';
-					$this->bracket['round_'.$this->round]['final_1']['match_1']['player_1']['id'] = '0';
-					$this->bracket['round_'.$this->round]['final_1']['match_1']['player_1']['name'] = 'BYE';
-					$this->bracket['round_'.$this->round]['final_1']['match_1']['winner'] = null;
-					$this->bracket['round_'.$this->round]['final_2']['match_1']['player_0']['id'] = '0';
-					$this->bracket['round_'.$this->round]['final_2']['match_1']['player_0']['name'] = 'BYE';
-					$this->bracket['round_'.$this->round]['final_2']['match_1']['player_1']['id'] = '0';
-					$this->bracket['round_'.$this->round]['final_2']['match_1']['player_1']['name'] = 'BYE';
-					$this->bracket['round_'.$this->round]['final_2']['match_1']['winner'] = null;
+					$this->bracket['data']['round_'.$this->round]['final_1']['match_1']['player_0']['id'] = '0';
+					$this->bracket['data']['round_'.$this->round]['final_1']['match_1']['player_0']['name'] = 'BYE';
+					$this->bracket['data']['round_'.$this->round]['final_1']['match_1']['player_1']['id'] = '0';
+					$this->bracket['data']['round_'.$this->round]['final_1']['match_1']['player_1']['name'] = 'BYE';
+					$this->bracket['data']['round_'.$this->round]['final_1']['match_1']['winner'] = null;
+					if(!isset($this->bracket['data']['round_'.$this->round]['final_1']['match_1']['id'])) $this->bracket['data']['round_'.$this->round]['final_1']['match_1']['id'] = uniqid();
+					$this->bracket['data']['round_'.$this->round]['final_2']['match_1']['player_0']['id'] = '0';
+					$this->bracket['data']['round_'.$this->round]['final_2']['match_1']['player_0']['name'] = 'BYE';
+					$this->bracket['data']['round_'.$this->round]['final_2']['match_1']['player_1']['id'] = '0';
+					$this->bracket['data']['round_'.$this->round]['final_2']['match_1']['player_1']['name'] = 'BYE';
+					$this->bracket['data']['round_'.$this->round]['final_2']['match_1']['winner'] = null;
+					if(!isset($this->bracket['data']['round_'.$this->round]['final_2']['match_1']['id'])) $this->bracket['data']['round_'.$this->round]['final_2']['match_1']['id'] = uniqid();
 					break;
 				}
 			}
 		}
-		if($insert) $db->insert_id("INSERT INTO `".db_bracket."` SET `bracket_seed` = '".serialize($this->bracket)."'");
+		if($insert) $this->id = $db->insert_id("INSERT INTO `".db_bracket."` SET `bracket_seed` = '".serialize($this->bracket)."'");
+		print_r($this->bracket); die();
 	}
 
 	public static function bracketFromId($id = 0){
@@ -145,68 +168,28 @@ class Bracket {
 		if(empty($bracket)) return array();
 		$instance = new self();
 		$instance->bracket = unserialize($bracket['bracket_seed']);
+		$instance->id = $id;
 		return $instance;
 	}
 
 	public function bracketHTML(){
 		if(empty($this->bracket)) return '';
 		$round_counter = 0;
+		$current_match = '';
 		$html = ''; 
-		foreach($this->bracket as $key => $b){
+		foreach($this->bracket['data'] as $key => $b){
 			$html .= '<div class="round">';
 			$html .= '<div class="title">Round '.++$round_counter.'</div>';
-			if(isset($b['winner_bracket'])){
-				$html .= '<div class="title">Winner bracket</div>';
-				$html .= '<div class="winner_bracket">';
-				foreach($b['winner_bracket'] as $match) {
-					$html .= '<div class="match winner_'.$match['winner'].'">';
-						$html .= '<div class="player player_0">'.$match['player_0']['name'].'</div>';
-						$html .= '<div class="player player_1">'.$match['player_1']['name'].'</div>';
-					$html .= '</div>';
-				}
-				$html .= '</div>';
-			}
-			if(isset($b['looser_bracket'])){
-				$html .= '<div class="title">Looser bracket</div>';
-				$html .= '<div class="looser_bracket">';
-				foreach($b['looser_bracket'] as $match) {
-					$html .= '<div class="match winner_'.$match['winner'].'">';
-						$html .= '<div class="player player_0">'.$match['player_0']['name'].'</div>';
-						$html .= '<div class="player player_1">'.$match['player_1']['name'].'</div>';
-					$html .= '</div>';
-				}
-				$html .= '</div>';
-			}
-			if(isset($b['semi_final'])){
-				$html .= '<div class="title">Semi final</div>';
-				$html .= '<div class="looser_bracket">';
-				foreach($b['semi_final'] as $match) {
-					$html .= '<div class="match winner_'.$match['winner'].'">';
-						$html .= '<div class="player player_0">'.$match['player_0']['name'].'</div>';
-						$html .= '<div class="player player_1">'.$match['player_1']['name'].'</div>';
-					$html .= '</div>';
-				}
-				$html .= '</div>';
-			}
-			if(isset($b['final_1'])){ 
-				$html .= '<div class="title">Final 1</div>';
-				$html .= '<div class="looser_bracket">';
-					foreach($b['final_1'] as $match) {
-						$html .= '<div class="match winner_'.$match['winner'].'">';
+			foreach($b as $bracket_type => $matches){
+				$html .= '<div class="title">'.ucfirst(str_replace('_',' ',$bracket_type)).'</div>';
+				$html .= '<div class="'.$bracket_type.'">';
+					foreach($matches as $match){
+						if($match['id'] == $this->bracket['on_going_match']['id']) $current_match = 'current_match';
+						$html .= '<div class="match winner_'.$match['winner'].' '.$current_match.'">';
 							$html .= '<div class="player player_0">'.$match['player_0']['name'].'</div>';
 							$html .= '<div class="player player_1">'.$match['player_1']['name'].'</div>';
 						$html .= '</div>';
-					}
-				$html .= '</div>';
-			}
-			if(isset($b['final_2'])){
-				$html .= '<div class="title">Final 2</div>';
-				$html .= '<div class="looser_bracket">';
-					foreach($b['final_2'] as $match) {
-						$html .= '<div class="match winner_'.$match['winner'].'">';
-							$html .= '<div class="player player_0">'.$match['player_0']['name'].'</div>';
-							$html .= '<div class="player player_1">'.$match['player_1']['name'].'</div>';
-						$html .= '</div>';
+						$current_match = '';
 					}
 				$html .= '</div>';
 			}
@@ -219,6 +202,9 @@ class Bracket {
 	public function setSeed($seed = array()){
 		if(empty($seed)) return false;
 
+		/*
+		TODO:
+			- rewrite below
 		foreach($seed as $round => $s){
 			if(isset($s['winner_bracket']) && !empty($s['winner_bracket'])){
 				foreach($s['winner_bracket'] as $match_id => $matches){
@@ -255,10 +241,10 @@ class Bracket {
 					if(isset($matches['winner']) && $matches['winner'] != null) $this->bracket[$round]['final_2'][$match_id]['winner'] = $matches['winner'];
 				}
 			}
-		}
+		}*/
 	}
 
 	public function updateSeed($round = null, $type = null, $match = null, $match_status = null, $player_id = 0){
-
+		$db->insert("INSERT INTO `".db_bracket_seed."` SET `bracket_seed_round` = '".$round."', `bracket_seed_type` = '".$type."', `bracket_seed_match` ");
 	}
 }
