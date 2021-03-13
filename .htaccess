@@ -1,0 +1,11 @@
+RewriteEngine On
+
+RewriteRule ^static/css/style.css$ static/css/style.php
+RewriteRule ^static/js/javascript.js$ static/js/javascript.php
+
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
